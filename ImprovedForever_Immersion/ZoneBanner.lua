@@ -20,6 +20,10 @@ local ZB = {}
 IN.ZoneBanner = ZB
 
 local HOLD = 4                          -- (seconds shown, once in)
+-- (the player's own time: Custom.lua)
+local function Hold()
+    return tonumber(IN.Tune("zoneHold")) or HOLD
+end
 local SWAP = 1                          -- (the change over: what has the place out, the name in)
 local TILE = 30                         -- (the diamond's tile: a size as the spell diamonds')
 local ROOT2 = math.sqrt(2)
@@ -128,6 +132,8 @@ local function Native(frame)
 end
 
 local function Read(zoneUp, subUp)
+    -- (new zones only, the player's choice: a subzone's name alone isn't shown; Custom.lua)
+    if not zoneUp and IN.Tune("zoneNames") == "zone" then return end
     local zone = zoneUp and Words(ZoneTextString and ZoneTextString:GetText())
     local subzone = subUp and Words(SubZoneTextString and SubZoneTextString:GetText())
     local big = zone or subzone
@@ -148,7 +154,7 @@ local function Read(zoneUp, subUp)
     pvp:SetText(words or "")
     if words and r then pvp:SetTextColor(r, g, b) end
     SetKind()
-    goal, holdUntil = 1, GetTime() + HOLD + SWAP
+    goal, holdUntil = 1, GetTime() + Hold() + SWAP
     banner:Show()
 end
 
@@ -242,7 +248,7 @@ function ZB.Test()
     if GetZonePVPInfo then pvpType, _, faction = GetZonePVPInfo() end
     pvp:SetText("")
     SetKind()
-    goal, holdUntil = 1, GetTime() + HOLD + SWAP
+    goal, holdUntil = 1, GetTime() + Hold() + SWAP
     IF.Print(("Zone banner: %s (%s), %s"):format(zone, tostring(pvpType), tostring(faction)))
 end
 

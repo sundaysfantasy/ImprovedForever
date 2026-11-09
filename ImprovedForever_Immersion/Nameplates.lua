@@ -23,6 +23,10 @@ local TITLE_SIZE = 12
 local TITLE_COLOR = { 0.85, 0.82, 0.7 }   -- (the NPC's job, <Warrior Trainer>: softer than the name)
 local STEP = 0.1
 local OTHER_SCALE, OTHER_ALPHA = 0.8, 0.85
+-- (the player's own, in percent: Custom.lua)
+local function Other(key, default, least)
+    return math.max(least, math.min(1, (tonumber(IN.Tune(key)) or default * 100) / 100))
+end
 local BAR_GAP = 7                    -- (between the health line and what's over it)
 local PLATE_DROP = 34                -- (ours sits this far under the game's plate centre: closer to the head)
 local FADE_SPEED = 8                    -- (how fast alpha and size ease)
@@ -135,6 +139,11 @@ local IsTarget, IsSoft = Same("target"), Same("softinteract")
 -- by the game itself, so it reads them in a fight too), one per plate of
 -- ours, the unit handed to it.
 local DEBUFF_SIZE, DEBUFF_MAX, DEBUFF_GAP = 16, 5, 2
+-- (the icons' size and count: the player's, read once at login, Custom.lua)
+IN.Custom.AtLogin(function()
+    DEBUFF_SIZE = math.max(10, math.min(30, tonumber(IN.Tune("plateDebuffSize")) or DEBUFF_SIZE))
+    DEBUFF_MAX = math.max(1, math.min(10, tonumber(IN.Tune("plateDebuffMax")) or DEBUFF_MAX))
+end)
 
 local function StyleDebuff(b)
     b:SetSize(DEBUFF_SIZE, DEBUFF_SIZE)
@@ -355,8 +364,8 @@ local function Refresh(p)
     end
     -- (your target's at full size, the others softer: eased on a change)
     local target = Flag(IsTarget, unit)
-    p.goalAlpha = target and 1 or OTHER_ALPHA
-    p.goalScale = target and 1 or OTHER_SCALE
+    p.goalAlpha = target and 1 or Other("plateOtherAlpha", OTHER_ALPHA, 0.2)
+    p.goalScale = target and 1 or Other("plateOtherScale", OTHER_SCALE, 0.5)
     p:SetFrameLevel(target and 20 or 10)
     -- (a cast's end missed: gone with it)
     if p.castKind and not Casting(unit) then p.castKind = nil end
@@ -502,7 +511,7 @@ local function Add(unit)
     p.alpha = nil
     HideGame(game, true)
     p:ClearAllPoints()
-    p:SetPoint("CENTER", game, "CENTER", 0, -PLATE_DROP)
+    p:SetPoint("CENTER", game, "CENTER", 0, -(tonumber(IN.Tune("plateDrop")) or PLATE_DROP))
     Refresh(p)
     Auras(p, unit)
     CastStart(p)

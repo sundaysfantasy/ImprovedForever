@@ -146,7 +146,7 @@ local function Step()
     local p = HS.Presence("progress")
     if goal == 1 and p < 1 and not heldFrom and now - since > STALE then goal = 0 end
     if p >= 1 and not heldFrom then heldFrom = now end
-    if goal == 1 and heldFrom and now - heldFrom > HOLD then goal = 0 end
+    if goal == 1 and heldFrom and now - heldFrom > (tonumber(IN.Tune("progressHold")) or HOLD) then goal = 0 end
     if p <= 0 then
         banner:Hide()
         return

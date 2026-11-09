@@ -440,7 +440,7 @@ local function Read()
     end
     -- (there: at its point, or inside its area (the shape the map and the
     -- minimap draw round it): nothing more to point at)
-    if yards < ARRIVED or inside then goalAngle = nil end
+    if yards < (tonumber(IN.Tune("arrowArrived")) or ARRIVED) or inside then goalAngle = nil end
     title:SetText(t.name or "")
     words:SetText(t.text or "")
     local yd = math.floor(yards + 0.5)

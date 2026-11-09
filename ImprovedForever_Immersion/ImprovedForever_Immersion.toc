@@ -12,6 +12,7 @@
 ## OptionalDeps: Spoken_Quests
 
 Module.lua
+Custom.lua
 HeaderSlot.lua
 UnitFrames.lua
 Breath.lua

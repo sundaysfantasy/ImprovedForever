@@ -538,6 +538,10 @@ end)
 ---------------------------------------------------------------------------
 local RANGE_CHECK, OUT_ALPHA = 0.1, 0.35
 local OUT_GREY = 0.4
+-- (the health line's opacity out of reach: the player's, Custom.lua)
+local function OutAlpha()
+    return math.max(0.1, math.min(1, (tonumber(IN.Tune("targetOutAlpha")) or OUT_ALPHA * 100) / 100))
+end
 local WHITE_C, GREY_C
 local rangeSince = 0
 
@@ -555,7 +559,7 @@ local function Reach(inRange)
         icon:SetDesaturated(false)
         if not Try(icon.SetVertexColorFromBoolean, icon, inRange, WHITE_C, GREY_C) then icon:SetVertexColor(1, 1, 1) end
         for _, h in ipairs(halves) do
-            if not Try(h.holder.SetAlphaFromBoolean, h.holder, inRange, 1, OUT_ALPHA) then h.holder:SetAlpha(1) end
+            if not Try(h.holder.SetAlphaFromBoolean, h.holder, inRange, 1, OutAlpha()) then h.holder:SetAlpha(1) end
         end
         return
     end
@@ -563,7 +567,7 @@ local function Reach(inRange)
     icon:SetDesaturated(out)
     local c = out and OUT_GREY or 1
     icon:SetVertexColor(c, c, c)
-    for _, h in ipairs(halves) do h.holder:SetAlpha(out and OUT_ALPHA or 1) end
+    for _, h in ipairs(halves) do h.holder:SetAlpha(out and OutAlpha() or 1) end
 end
 
 -- (an enemy targeted, alive)

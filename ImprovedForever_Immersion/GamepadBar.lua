@@ -1937,7 +1937,7 @@ local function PlaceSupplies()
         if type(slot) == "table" and slot.IsShown and slot:IsShown() then
             supplyRow:SetPoint("TOP", slot, "BOTTOM", 0, -SUPPLY_UNDER)
         else
-            local anchor, x, y, d = GB.SideSpot()
+            local anchor, x, y, d = GB.SideSpot(true)
             if not anchor then return end
             supplyRow:SetPoint("TOP", anchor, "CENTER", x, y - d.width / 2 - SUPPLY_UNDER)
         end
@@ -2072,14 +2072,18 @@ end
 -- else nil.
 local SIDE_GAP = 14
 local sideDims = GB.Dims(DPAD.size, DPAD.glyph)
-function GB.SideSpot()
+function GB.SideSpot(inside)
     -- (none with the keyboard bar: that slot is the pad's)
     if not holder:IsShown() or keyMode then return nil end
     -- (a grid: beside its bottom row, clear of that row's outer glyph)
     if style.grid then
         return dpadCenter, -(DPAD.spread + DPAD.side / 2 + GlyphOut(DPAD) + sideDims.width / 2), -DPAD.spread, sideDims
     end
-    return dpadCenter, -(Extent(DPAD) + SIDE_GAP + sideDims.width / 2), 0, sideDims
+    -- (the holder's own size, the player's (Custom.lua): another addon's tile beside it isn't scaled
+    -- with it, so the D-pad's reach is given in that tile's units; `inside`: for a frame of the
+    -- holder's own, in its units)
+    local k = inside and 1 or holder:GetScale()
+    return dpadCenter, -(Extent(DPAD) * k + SIDE_GAP + sideDims.width / 2), 0, sideDims
 end
 
 ---------------------------------------------------------------------------
@@ -2120,6 +2124,32 @@ end
 -- EDGE px to spare (and back out when there is room again).
 local EDGE = 8
 local fit = 0
+
+-- The holder's size and place: the default corner, the player's own size (percent) and offset (px
+-- right, px up; Custom.lua), moved in by `fit`. Out of combat only (its buttons are secure): false
+-- when it couldn't be done
+local function PlaceHolder()
+    if InCombatLockdown() then return false end
+    local k = math.max(0.6, math.min(1.5, (tonumber(IN.Tune("padScale")) or 100) / 100))
+    holder:SetScale(k)
+    holder:ClearAllPoints()
+    holder:SetPoint("BOTTOMRIGHT", UIParent, "BOTTOMRIGHT", ((tonumber(IN.Tune("padX")) or 0) - MARGIN_X) / k - fit,
+        (IN.BOTTOM + (tonumber(IN.Tune("padY")) or 0)) / k)
+    return true
+end
+
+-- (asked in a fight: done as it ends)
+local placePending
+function GB.Place()
+    placePending = not PlaceHolder() or nil
+end
+local placeWatch = CreateFrame("Frame")
+placeWatch:RegisterEvent("PLAYER_REGEN_ENABLED")
+placeWatch:SetScript("OnEvent", function()
+    if placePending then GB.Place() end
+end)
+IF.OnLogin(GB.Place)
+
 local function Fit()
     if not holder:IsShown() or InCombatLockdown() then return end
     local _, _, r = GB.Rect()
@@ -2129,7 +2159,6 @@ local function Fit()
     local want = math.max(0, fit + over / k)
     if math.abs(want - fit) < 0.5 then return end
     fit = want
-    holder:ClearAllPoints()
-    holder:SetPoint("BOTTOMRIGHT", UIParent, "BOTTOMRIGHT", -(MARGIN_X + fit), IN.BOTTOM)
+    PlaceHolder()
 end
 IN.Watcher("gamepad bar fit", 0.5, Fit)

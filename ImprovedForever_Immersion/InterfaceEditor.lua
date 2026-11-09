@@ -351,5 +351,8 @@ local GROUPS = {
     { key = "bottom", label = "Footer" },
 }
 
+-- (the fork's fine tuning: its fields, each into its section; Custom.lua)
+IN.Custom.AddItems(ITEMS)
+
 IF.InterfaceEditor = IF.SettingsPage({ key = "interface", label = "Immersion", module = "interface", order = 35 },
     GROUPS, ITEMS)

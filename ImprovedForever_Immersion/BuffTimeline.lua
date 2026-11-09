@@ -104,6 +104,10 @@ end
 -- The icons' size: three quarters of the Cooldown Manager's
 -- (HudLayout.lua), else of SIZE_FALLBACK
 local ICON_SCALE = 0.75
+-- (the player's own share and debuff count, read once at login: Custom.lua)
+IN.Custom.AtLogin(function()
+    ICON_SCALE = math.max(0.4, math.min(1.3, (tonumber(IN.Tune("timelineIcon")) or 75) / 100))
+end)
 local function Size()
     local HL = IN.HudLayout
     local size = HL and HL.CooldownIconSize and HL.CooldownIconSize()
@@ -326,6 +330,9 @@ end
 ---------------------------------------------------------------------------
 local GROUP_GAP = 12            -- (between the buffs and the debuffs)
 local DEBUFF_MAX = 8
+IN.Custom.AtLogin(function()
+    DEBUFF_MAX = math.max(2, math.min(16, tonumber(IN.Tune("timelineDebuffs")) or DEBUFF_MAX))
+end)
 
 local function StyleButton(b, harmful, size)
     b:SetSize(size, size)

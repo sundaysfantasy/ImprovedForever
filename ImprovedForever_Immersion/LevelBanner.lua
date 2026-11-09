@@ -206,7 +206,7 @@ local function Step()
     local p = HS.Presence("level")
     -- (held HOLD seconds from when it's fully in)
     if p >= 1 and not shownAt then shownAt = GetTime() end
-    if goal == 1 and shownAt and GetTime() - shownAt > HOLD then goal = 0 end
+    if goal == 1 and shownAt and GetTime() - shownAt > (tonumber(IN.Tune("levelHold")) or HOLD) then goal = 0 end
     if p <= 0 then
         banner:Hide()
         return

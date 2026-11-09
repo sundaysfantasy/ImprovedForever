@@ -9,6 +9,11 @@ local TA = {}
 IN.TargetAuras = TA
 
 local SIZE, MAX_EACH, GAP, GROUP_GAP = 22, 8, 3, 12
+-- (the icons' size and count: the player's, read once at login, Custom.lua)
+IN.Custom.AtLogin(function()
+    SIZE = math.max(14, math.min(40, tonumber(IN.Tune("targetAuraSize")) or SIZE))
+    MAX_EACH = math.max(2, math.min(16, tonumber(IN.Tune("targetAuraMax")) or MAX_EACH))
+end)
 local GAP_UNDER = 2         -- (under the race / class line: the cast is on the diamond now, its text above it)
 
 local function Style(b)
@@ -83,8 +88,9 @@ local function Count(filter)
 end
 
 -- The row as wide as its icons, so centring it centres them: counted out of a fight, kept in one
-local width = SIZE
+local width
 local function Width(c)
+    width = width or SIZE
     if not IF.InCombat() then
         local d, b = Count("HARMFUL|PLAYER"), Count("HELPFUL")
         local n = d + b

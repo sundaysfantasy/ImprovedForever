@@ -47,6 +47,10 @@ end
 
 local back = Layer(DIM, false)
 local front = Layer(1, true)
+-- (the lines' opacity at rest, a new line's time bright and its fade: the player's, Custom.lua)
+local function Dim()
+    return math.max(0, math.min(1, (tonumber(IN.Tune("chatDim")) or DIM * 100) / 100))
+end
 local layers = { back, front }
 
 ---------------------------------------------------------------------------
@@ -149,13 +153,20 @@ function CV.Update(state)
     view:SetShown(on and true or false)
     if on and state ~= shownState then
         shownState = state
-        back:SetAlpha(state == "typing" and 1 or DIM)
+        back:SetAlpha(state == "typing" and 1 or Dim())
         -- (typing: the back one alone, at full; the front one's lines on it
         -- would draw them twice)
         front:SetShown(state == "idle")
     end
 end
 
+function CV.Tune()
+    front:SetTimeVisible(tonumber(IN.Tune("chatBright")) or BRIGHT)
+    front:SetFadeDuration(tonumber(IN.Tune("chatFade")) or FADE)
+    if view:IsShown() and front:IsShown() then back:SetAlpha(Dim()) end
+end
+
 IF.OnLogin(function()
+    CV.Tune()
     Rebuild(Selected())
 end)

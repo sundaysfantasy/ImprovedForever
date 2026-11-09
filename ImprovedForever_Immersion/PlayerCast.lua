@@ -573,6 +573,13 @@ local DEMOS = {
 -- right, px up)
 function PlayerCast.Place()
     local s = IF.db and IN.Settings()
+    -- (its length and thickness: the player's, Custom.lua)
+    LINE_W = math.max(200, math.min(900, tonumber(IN.Tune("castW")) or LINE_W))
+    LINE_H = math.max(2, math.min(12, tonumber(IN.Tune("castH")) or LINE_H))
+    line:SetSize(LINE_W, LINE_H)
+    left:SetHeight(LINE_H)
+    right:SetHeight(LINE_H)
+    PlaceHalves()
     line:ClearAllPoints()
     line:SetPoint("BOTTOM", UIParent, "BOTTOM", s and s.castX or 0, LINE_Y + (s and s.castY or 0))
 end

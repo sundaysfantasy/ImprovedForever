@@ -593,7 +593,8 @@ end
 ---------------------------------------------------------------------------
 -- (wanted: in a fight or not at rest (read whole out of one))
 local function PowerWanted()
-    if demo or IF.InCombat() then return true end
+    -- (always, the player's choice: Custom.lua)
+    if demo or IF.InCombat() or IN.Tune("powerShow") == "always" then return true end
     local value, max = POWER.Read()
     if Secret(value) or Secret(max) or type(value) ~= "number" or type(max) ~= "number" then return true end
     if max <= 0 then return false end
@@ -657,7 +658,7 @@ local function Update(health, mp)
         holder.holdUntil = nil
     elseif was then
         -- (whole and at rest again: held a moment, the trail done, then faded)
-        holder.holdUntil = GetTime() + HOLD
+        holder.holdUntil = GetTime() + (tonumber(IN.Tune("lineHold")) or HOLD)
     end
 end
 
