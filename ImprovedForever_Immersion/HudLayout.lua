@@ -135,12 +135,30 @@ PIECES.chat = function(layout)
     return true
 end
 
--- (a shown icon's size on screen, in UIParent's units, under frame)
+local function Secret(v)
+    return type(issecretvalue) == "function" and issecretvalue(v)
+end
+
+-- (a shown icon's size on screen, in UIParent's units, under frame. In a
+-- fight the game keeps the Cooldown Manager's icons' sizes secret: one is
+-- never compared or worked with (the attempt is blocked and taints what
+-- runs after it; from the timelines' update it came back five times a
+-- second and took the controller's focus with it): the last size measured
+-- out of a fight is handed back instead, nil when there is none yet)
+local measured = {}
 local function IconSize(frame)
-    for _, child in ipairs(frame and { frame:GetChildren() } or {}) do
+    if not frame then return nil end
+    for _, child in ipairs({ frame:GetChildren() }) do
         local icon = child.Icon or child.icon
-        if child:IsShown() and icon and icon.GetWidth and icon:GetWidth() > 0 then
-            return icon:GetWidth() * icon:GetEffectiveScale() / UIParent:GetEffectiveScale()
+        local shown = child:IsShown()
+        if Secret(shown) then return measured[frame] end
+        if shown and icon and icon.GetWidth then
+            local width, scale = icon:GetWidth(), icon:GetEffectiveScale()
+            if Secret(width) or Secret(scale) then return measured[frame] end
+            if type(width) == "number" and type(scale) == "number" and width > 0 then
+                measured[frame] = width * scale / UIParent:GetEffectiveScale()
+                return measured[frame]
+            end
         end
     end
 end

@@ -248,10 +248,26 @@ local function Timeline(name, source)
 
     holder:SetScript("OnUpdate", function(_, elapsed)
         T.since = T.since + elapsed
-        if T.dirty or T.since >= LAYOUT_EVERY then
+        -- (an error here would come back each LAYOUT_EVERY and flood the
+        -- game's error handler, as a watcher's would (Module.lua): stopped
+        -- at the first, said once, its icons sent off)
+        if not T.stopped and (T.dirty or T.since >= LAYOUT_EVERY) then
             T.dirty, T.since = false, 0
-            local entries = source.Read(GetTime())
-            Fill(entries, Layout(entries))
+            local ok, err = pcall(function()
+                local entries = source.Read(GetTime())
+                Fill(entries, Layout(entries))
+            end)
+            if not ok then
+                T.stopped = true
+                for _, b in pairs(T.byKey) do
+                    if not b.leaving then
+                        b.leaving = true
+                        b:EnableMouse(false)
+                        b.wantX, b.wantY, b.wantAlpha = b.wantX or b.x, b.y + RISE, 0
+                    end
+                end
+                IF.Print("Immersion: " .. tostring(name) .. " stopped after an error: " .. tostring(err))
+            end
         end
         local k = math.min(1, elapsed * SLIDE)
         for key, b in pairs(T.byKey) do

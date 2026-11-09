@@ -114,8 +114,12 @@ end
 local function Place(f, button)
     local region = button.Icon or button
     local l, b, w, h = region:GetRect()
+    local scale = region:GetEffectiveScale()
+    -- (a rect the game keeps secret (a fight): never tested or worked
+    -- with; no label then, a stale place could be another icon's)
+    if Secret(l) or Secret(b) or Secret(w) or Secret(h) or Secret(scale) then return false end
     if not (l and b and w and h) then return false end
-    local k = region:GetEffectiveScale() / UIParent:GetEffectiveScale()
+    local k = scale / UIParent:GetEffectiveScale()
     f:ClearAllPoints()
     f:SetPoint("BOTTOMLEFT", UIParent, "BOTTOMLEFT", l * k, b * k)
     f:SetSize(w * k, h * k)
