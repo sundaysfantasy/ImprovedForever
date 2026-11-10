@@ -104,23 +104,36 @@ end
 for _, module in ipairs({ IFQuestObjectiveTracker, IFCampaignQuestObjectiveTracker }) do
 	local Build = module.BuildQuestWatchInfos
 	module.BuildQuestWatchInfos = function(self)
-		-- (a quest the game's watch list has twice, as it can while one is handed in: once. Its
-		-- block laid out twice in a pass anchors to a block that hangs from it: "Cannot anchor to a
-		-- region dependent on it", the layout stopped half way and a gap left where a quest was)
-		local infos, seen, n = Build(self), {}, 0
-		for i = 1, #infos do
-			local info = infos[i]
-			local id = info.quest:GetID()
-			if not seen[id] then
-				seen[id] = true
-				n = n + 1
-				infos[n] = info
+		return IQT.SortWatchInfos(Build(self), self)
+	end
+	-- A cached block (a quest handed in, kept for its animation) the module still lays out itself,
+	-- its quest still watched: left to the module. The game puts a cached block back where it was
+	-- (the cached order), before the block that came after it; that holds while the order does.
+	-- Ours changes (Sort.lua: a quest done moves), so the block after it can come first now: the
+	-- cached one went in before it, then the module anchored it again, under a block that hangs
+	-- from it ("Cannot anchor to a region dependent on it", the layout stopped, a gap left)
+	local Check = module.CheckCachedBlocks
+	module.CheckCachedBlocks = function(self, upcomingBlock)
+		local list = self.cachedOrderList
+		if list then
+			local watched
+			for i = #list, self.cacheIndex or 1, -1 do
+				local item = list[i]
+				if type(item) == "table" and item.id then
+					if not watched then
+						watched = {}
+						for w = 1, C_QuestLog.GetNumQuestWatches() do
+							local questID = C_QuestLog.GetQuestIDForQuestWatchIndex(w)
+							if questID and self:ShouldDisplayQuest(IFQuestCache:Get(questID)) then
+								watched[questID] = true
+							end
+						end
+					end
+					if watched[item.id] then table.remove(list, i) end
+				end
 			end
 		end
-		for i = #infos, n + 1, -1 do
-			infos[i] = nil
-		end
-		return IQT.SortWatchInfos(infos, self)
+		return Check(self, upcomingBlock)
 	end
 	-- (/if quests debug rows: each quest's place and distance on its header)
 	local GetBlock = module.GetBlock

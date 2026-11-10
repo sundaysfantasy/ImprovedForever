@@ -8,9 +8,11 @@ A personal fork of [markgravity/ImprovedForever](https://github.com/markgravity/
 - **Immersion**: no more "attempt to compare a secret number value" in a fight
   (`HudLayout.lua`, `AuraLabels.lua`, `ChatView.lua`); a timeline stops at its first
   error instead of flooding the error handler (`BuffTimeline.lua`).
-- **Quest Tracker**: a quest the game's watch list has twice is laid out once
-  (`Tracker/Patch.lua`), a guard against "Cannot anchor to a region dependent on it"
-  and the gap it left in the tracker. Cause not confirmed in game.
+- **Quest Tracker**: no more "Cannot anchor to a region dependent on it" as a quest is
+  handed in, the tracker left with a gap (`Tracker/Patch.lua`). The game's tracker puts a
+  handed-in quest's block back where it was for its animation; with our sort the quest
+  after it can come first, and the block was anchored twice, in a circle. A cached block
+  whose quest is still watched is now left to the module.
 
 ## Fine tuning (Immersion tab)
 
