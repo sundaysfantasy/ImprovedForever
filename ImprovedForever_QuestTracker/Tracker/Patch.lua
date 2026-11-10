@@ -104,7 +104,23 @@ end
 for _, module in ipairs({ IFQuestObjectiveTracker, IFCampaignQuestObjectiveTracker }) do
 	local Build = module.BuildQuestWatchInfos
 	module.BuildQuestWatchInfos = function(self)
-		return IQT.SortWatchInfos(Build(self), self)
+		-- (a quest the game's watch list has twice, as it can while one is handed in: once. Its
+		-- block laid out twice in a pass anchors to a block that hangs from it: "Cannot anchor to a
+		-- region dependent on it", the layout stopped half way and a gap left where a quest was)
+		local infos, seen, n = Build(self), {}, 0
+		for i = 1, #infos do
+			local info = infos[i]
+			local id = info.quest:GetID()
+			if not seen[id] then
+				seen[id] = true
+				n = n + 1
+				infos[n] = info
+			end
+		end
+		for i = #infos, n + 1, -1 do
+			infos[i] = nil
+		end
+		return IQT.SortWatchInfos(infos, self)
 	end
 	-- (/if quests debug rows: each quest's place and distance on its header)
 	local GetBlock = module.GetBlock
